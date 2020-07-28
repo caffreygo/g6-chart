@@ -1,5 +1,7 @@
 <template>
   <div class="about">
+    <el-button @click="handleAddCircle">add Circle</el-button>
+    <el-button @click="handleAddRect">add Rect</el-button>
     <div id="mountNode"></div>
   </div>
 </template>
@@ -11,6 +13,7 @@ export default {
   data() {
     return {
       graph: null,
+      i: 0,
       data: {
         // 点集
         nodes: [
@@ -41,14 +44,84 @@ export default {
     this.graph = new G6.Graph({
       container: "mountNode", // 指定图画布的容器 id，与第 9 行的容器对应
       // 画布宽高
-      width: 800,
-      height: 500,
+      width: 1920,
+      height: 600,
+      modes: {
+        default: ["drag-canvas"],
+      },
       plugins: [grid],
     });
     // 读取数据
     this.graph.data(this.data);
     // 渲染图
+    console.log(123);
     this.graph.render();
+  },
+  methods: {
+    handleAddCircle() {
+      const model = {
+        id: "circle" + this.i++,
+        label: "圆",
+        type: "circle",
+        x: 200 + this.i * 15,
+        y: 150 + this.i * 15,
+        style: {
+          fill: "#fff",
+        },
+      };
+
+      this.graph.addItem("node", model);
+    },
+    handleAddRect() {
+      const model = {
+        id: "rect" + this.i++,
+        label: "方块",
+        type: "rect",
+        x: 200 + this.i * 25,
+        y: 150 + this.i * 25,
+        style: {
+          fill: "#fff",
+        },
+      };
+
+      this.graph.addItem("node", model);
+    },
+    onEventListener() {
+      const graph = this.graph;
+      // 鼠标进入节点
+      graph.on("node:mouseenter", (e) => {
+        const nodeItem = e.item; // 获取鼠标进入的节点元素对象
+        graph.setItemState(nodeItem, "hover", true); // 设置当前节点的 hover 状态为 true
+      });
+
+      // 鼠标离开节点
+      graph.on("node:mouseleave", (e) => {
+        const nodeItem = e.item; // 获取鼠标离开的节点元素对象
+        graph.setItemState(nodeItem, "hover", false); // 设置当前节点的 hover 状态为 false
+      });
+
+      // 点击节点
+      graph.on("node:click", (e) => {
+        // 先将所有当前是 click 状态的节点置为非 click 状态
+        const clickNodes = graph.findAllByState("node", "click");
+        clickNodes.forEach((cn) => {
+          graph.setItemState(cn, "click", false);
+        });
+        const nodeItem = e.item; // 获取被点击的节点元素对象
+        graph.setItemState(nodeItem, "click", true); // 设置当前节点的 click 状态为 true
+      });
+
+      // 点击边
+      graph.on("edge:click", (e) => {
+        // 先将所有当前是 click 状态的边置为非 click 状态
+        const clickEdges = graph.findAllByState("edge", "click");
+        clickEdges.forEach((ce) => {
+          graph.setItemState(ce, "click", false);
+        });
+        const edgeItem = e.item; // 获取被点击的边元素对象
+        graph.setItemState(edgeItem, "click", true); // 设置当前边的 click 状态为 true
+      });
+    },
   },
 };
 </script>

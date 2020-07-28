@@ -1,19 +1,37 @@
 <template>
   <div class="container">
-    <div id="mountNode"></div>
+    <div class="header">
+      <el-button @click="handleAddCircle">Circle</el-button>
+      <el-button @click="handleAddRect">Rect</el-button>
+    </div>
+    <div class="main">
+      <div id="mountNode"></div>
+    </div>
   </div>
 </template>
 <script>
 import G6 from "@antv/g6";
 import MiniMap from "@antv/g6/es/plugins/minimap";
 import Grid from "@antv/g6/es/plugins/grid";
+import "./node/rect-node";
 
 export default {
   name: "GraphView",
   data() {
     return {
       graph: null,
-      graphData: null,
+      graphData: {
+        nodes: [
+          {
+            id: "rect0",
+            type: "rect-node",
+            x: 100,
+            y: 100,
+          },
+        ],
+        edges: [],
+      },
+      i: 1,
       modes: {
         default: [
           "drag-canvas",
@@ -88,9 +106,9 @@ export default {
       },
     };
   },
-  async mounted() {
+  mounted() {
     const minimap = new MiniMap({
-      size: [200, 200],
+      size: [150, 150],
       className: "minimap",
       type: "delegate",
     });
@@ -99,15 +117,14 @@ export default {
       Object.assign(
         {
           container: "mountNode",
-          width: 1920,
+          width: 1800,
           height: 800,
-          layout: {
-            // Object，可选，布局的方法及其配置项，默认为 random 布局。
-            type: "force", // 指定为力导向布局
-            preventOverlap: true, // 防止节点重叠
-            linkDistance: 100, // 指定边距离为100
-            // nodeSize: 30        // 节点大小，用于算法中防止节点重叠时的碰撞检测。由于已经在上一节的元素配置中设置了每个节点的 size 属性，则不需要在此设置 nodeSize。
-          },
+          renderer: "svg",
+          // layout: {
+          // preventOverlap: true, // 防止节点重叠
+          // linkDistance: 100, // 指定边距离为100
+          // nodeSize: 30        // 节点大小，用于算法中防止节点重叠时的碰撞检测。由于已经在上一节的元素配置中设置了每个节点的 size 属性，则不需要在此设置 nodeSize。
+          // },
           modes: this.modes,
           // fitView: true,
           // fitViewPadding: [20, 40, 50, 20],
@@ -117,7 +134,6 @@ export default {
         this.defaultStyle
       )
     );
-    await this.getData();
     this.graph.data(this.graphData);
     this.graph.render();
     this.onEventListener();
@@ -130,6 +146,31 @@ export default {
       this.graphData = await response.json();
       this.initNodeStyle(this.graphData.nodes);
       this.initEdgeStyle(this.graphData.edges);
+    },
+    handleAddCircle() {
+      const model = {
+        id: "circle" + this.i++,
+        label: "圆",
+        type: "circle",
+        x: 200 + this.i * 15,
+        y: 150 + this.i * 15,
+        style: {
+          fill: "#fff",
+        },
+      };
+
+      this.graph.addItem("node", model);
+    },
+    handleAddRect() {
+      const model = {
+        id: "rect" + this.i++,
+        label: "方块",
+        type: "rect-node",
+        x: 200 + this.i * 15,
+        y: 150 + this.i * 15,
+      };
+
+      this.graph.addItem("node", model);
     },
     onEventListener() {
       const graph = this.graph;
@@ -207,11 +248,13 @@ export default {
 </script>
 
 <style lang="scss">
-.container {
+.container,
+.main {
   position: relative;
 }
 .minimap {
   position: absolute;
+  border: 2px solid #ccc;
   left: 40px;
   top: 30%;
 }
