@@ -25,6 +25,7 @@ export default {
           {
             id: "rect0",
             type: "rect-node",
+            label: "This label is too long to be displayed",
             x: 100,
             y: 100,
           },

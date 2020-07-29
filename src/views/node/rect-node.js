@@ -1,4 +1,7 @@
 import G6 from "@antv/g6";
+import { fittingString } from "../utils"
+
+const globalFontSize = 12;
 
 G6.registerNode(
   'rect-node',
@@ -21,20 +24,21 @@ G6.registerNode(
         },
 
       })
-      // if (cfg.label) {
-      //   group.addShape("text", {
-      //     // attrs: style
-      //     attrs: {
-      //       text: cfg.label,
-      //       x: 150 / 2, // 居中
-      //       y: 0 - 20,
-      //       textAlign: "center",
-      //       textBaseline: "middle",
-      //       fill: "#e4e4e4",
-      //       class: "rect-node-label"
-      //     }
-      //   });
-      // }
+      if (cfg.label) {
+        group.addShape("text", {
+          attrs: {
+            text: fittingString(cfg.label, size[0] - 10, globalFontSize),
+            x: size[0] / 2, // 居中
+            y: size[1] / 2,
+            textAlign: "center",
+            fontSize: globalFontSize,
+            textBaseline: "middle",
+            fill: "#323232",
+            class: "rect-node-label"
+          },
+          name: 'text-shape'
+        });
+      }
       return shape
     },
     /**
