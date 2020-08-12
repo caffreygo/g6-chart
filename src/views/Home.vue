@@ -5,142 +5,26 @@
       <el-button @click="handleAddRect">Rect</el-button>
     </div>
     <div class="main">
-      <div id="mountNode"></div>
+      <div id="graph-container"></div>
     </div>
   </div>
 </template>
 <script>
-import G6 from "@antv/g6";
-import MiniMap from "@antv/g6/es/plugins/minimap";
-import Grid from "@antv/g6/es/plugins/grid";
-import "./node/rect-node";
+import { initGraph } from "./G6";
 
 export default {
   name: "GraphView",
-  data() {
+  data () {
     return {
       graph: null,
-      graphData: {
-        nodes: [
-          {
-            id: "rect0",
-            type: "rect-node",
-            label: "This label is too long to be displayed",
-            x: 100,
-            y: 100,
-          },
-        ],
-        edges: [],
-      },
-      i: 1,
-      modes: {
-        default: [
-          "drag-canvas",
-          "zoom-canvas",
-          "drag-node", // 允许拖拽画布、放缩画布、拖拽节点
-          {
-            type: "tooltip", // 提示框
-            formatText(model) {
-              // 提示框文本内容
-              const text =
-                "label: " + model.label + "<br/> class: " + model.class;
-              return text;
-            },
-          },
-          {
-            type: "edge-tooltip", // 边提示框
-            formatText(model) {
-              // 边提示框文本内容
-              const text =
-                "source: " +
-                model.source +
-                "<br/> target: " +
-                model.target +
-                "<br/> weight: " +
-                model.weight;
-              return text;
-            },
-          },
-        ],
-      },
-      stateStyle: {
-        nodeStateStyles: {
-          // 鼠标 hover 上节点，即 hover 状态为 true 时的样式
-          hover: {
-            fill: "lightsteelblue",
-          },
-          // 鼠标点击节点，即 click 状态为 true 时的样式
-          click: {
-            stroke: "#000",
-            lineWidth: 3,
-          },
-        },
-        // 节点不同状态下的样式集合
-        edgeStateStyles: {
-          // 鼠标点击边，即 click 状态为 true 时的样式
-          click: {
-            stroke: "steelblue",
-          },
-        },
-      },
-      defaultStyle: {
-        defaultNode: {
-          size: 50,
-          style: {
-            fill: "steelblue", // 节点填充色
-            stroke: "#666", // 节点描边色
-            lineWidth: 1, // 节点描边粗细
-          },
-          labelCfg: {
-            // 节点上的标签文本样式配置
-            style: {
-              fill: "#fff", // 节点标签文字颜色
-            },
-          },
-        },
-        defaultEdge: {
-          // 边上的标签文本配置
-          labelCfg: {
-            autoRotate: true, // 边上的标签文本根据边的方向旋转
-          },
-        },
-      },
+      i: 0
     };
   },
-  mounted() {
-    const minimap = new MiniMap({
-      size: [150, 150],
-      className: "minimap",
-      type: "delegate",
-    });
-    const grid = new Grid();
-    this.graph = new G6.Graph(
-      Object.assign(
-        {
-          container: "mountNode",
-          width: 1800,
-          height: 800,
-          renderer: "svg",
-          // layout: {
-          // preventOverlap: true, // 防止节点重叠
-          // linkDistance: 100, // 指定边距离为100
-          // nodeSize: 30        // 节点大小，用于算法中防止节点重叠时的碰撞检测。由于已经在上一节的元素配置中设置了每个节点的 size 属性，则不需要在此设置 nodeSize。
-          // },
-          modes: this.modes,
-          // fitView: true,
-          // fitViewPadding: [20, 40, 50, 20],
-          plugins: [minimap, grid],
-        },
-        this.stateStyle,
-        this.defaultStyle
-      )
-    );
-    this.graph.data(this.graphData);
-    this.graph.render();
-    this.onEventListener();
+  mounted () {
+    this.graph = initGraph("graph-container");
   },
   methods: {
-    async getData() {
+    async getData () {
       const response = await fetch(
         "https://gw.alipayobjects.com/os/basement_prod/6cae02ab-4c29-44b2-b1fd-4005688febcb.json"
       );
@@ -148,9 +32,9 @@ export default {
       this.initNodeStyle(this.graphData.nodes);
       this.initEdgeStyle(this.graphData.edges);
     },
-    handleAddCircle() {
+    handleAddCircle () {
       const model = {
-        id: "circle" + this.i++,
+        id: "circle" + (++this.i),
         label: "圆",
         type: "circle",
         x: 200 + this.i * 15,
@@ -162,9 +46,9 @@ export default {
 
       this.graph.addItem("node", model);
     },
-    handleAddRect() {
+    handleAddRect () {
       const model = {
-        id: "rect" + this.i++,
+        id: "rect" + (++this.i),
         label: "方块",
         type: "rect-node",
         x: 200 + this.i * 15,
@@ -173,49 +57,13 @@ export default {
 
       this.graph.addItem("node", model);
     },
-    onEventListener() {
-      const graph = this.graph;
-      // 鼠标进入节点
-      graph.on("node:mouseenter", (e) => {
-        const nodeItem = e.item; // 获取鼠标进入的节点元素对象
-        graph.setItemState(nodeItem, "hover", true); // 设置当前节点的 hover 状态为 true
-      });
-
-      // 鼠标离开节点
-      graph.on("node:mouseleave", (e) => {
-        const nodeItem = e.item; // 获取鼠标离开的节点元素对象
-        graph.setItemState(nodeItem, "hover", false); // 设置当前节点的 hover 状态为 false
-      });
-
-      // 点击节点
-      graph.on("node:click", (e) => {
-        // 先将所有当前是 click 状态的节点置为非 click 状态
-        const clickNodes = graph.findAllByState("node", "click");
-        clickNodes.forEach((cn) => {
-          graph.setItemState(cn, "click", false);
-        });
-        const nodeItem = e.item; // 获取被点击的节点元素对象
-        graph.setItemState(nodeItem, "click", true); // 设置当前节点的 click 状态为 true
-      });
-
-      // 点击边
-      graph.on("edge:click", (e) => {
-        // 先将所有当前是 click 状态的边置为非 click 状态
-        const clickEdges = graph.findAllByState("edge", "click");
-        clickEdges.forEach((ce) => {
-          graph.setItemState(ce, "click", false);
-        });
-        const edgeItem = e.item; // 获取被点击的边元素对象
-        graph.setItemState(edgeItem, "click", true); // 设置当前边的 click 状态为 true
-      });
-    },
-    initNodeStyle(nodes) {
+    initNodeStyle (nodes) {
       nodes.forEach((node) => {
         if (!node.style) {
           node.style = {};
         }
         switch (
-          node.class // 根据节点数据中的 class 属性配置图形
+        node.class // 根据节点数据中的 class 属性配置图形
         ) {
           case "c0": {
             node.type = "circle"; // class = 'c0' 时节点图形为 circle
@@ -234,7 +82,7 @@ export default {
         }
       });
     },
-    initEdgeStyle(edges) {
+    initEdgeStyle (edges) {
       edges.forEach((edge) => {
         if (!edge.style) {
           edge.style = {};

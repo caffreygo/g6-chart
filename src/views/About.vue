@@ -10,7 +10,7 @@
 import G6 from "@antv/g6";
 import Grid from "@antv/g6/es/plugins/grid";
 export default {
-  data() {
+  data () {
     return {
       graph: null,
       i: 0,
@@ -39,7 +39,7 @@ export default {
       },
     };
   },
-  mounted() {
+  mounted () {
     const grid = new Grid();
     this.graph = new G6.Graph({
       container: "mountNode", // 指定图画布的容器 id，与第 9 行的容器对应
@@ -58,7 +58,7 @@ export default {
     this.graph.render();
   },
   methods: {
-    handleAddCircle() {
+    handleAddCircle () {
       const model = {
         id: "circle" + this.i++,
         label: "圆",
@@ -72,7 +72,7 @@ export default {
 
       this.graph.addItem("node", model);
     },
-    handleAddRect() {
+    handleAddRect () {
       const model = {
         id: "rect" + this.i++,
         label: "方块",
@@ -86,7 +86,7 @@ export default {
 
       this.graph.addItem("node", model);
     },
-    onEventListener() {
+    onEventListener () {
       const graph = this.graph;
       // 鼠标进入节点
       graph.on("node:mouseenter", (e) => {
